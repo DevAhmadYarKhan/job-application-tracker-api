@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from dummy_data import applications
-from schemas import ApplicationCreate
+from schemas import ApplicationCreate, ApplicationRead
 from datetime import datetime, UTC
 
 app = FastAPI()
 
-@app.get("/applications")
-async def get_applications():
+@app.get("/applications", response_model=list[ApplicationRead])
+async def get_applications() -> list[ApplicationRead]:
     return applications
 
 @app.post("/applications")
