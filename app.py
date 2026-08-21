@@ -9,8 +9,8 @@ app = FastAPI()
 async def get_applications() -> list[ApplicationRead]:
     return applications
 
-@app.post("/applications")
-async def create_applications(application: ApplicationCreate):
+@app.post("/applications", response_model=ApplicationRead)
+async def create_applications(application: ApplicationCreate) -> ApplicationRead:
 
     new_app = {
         "id": len(applications) + 1,
@@ -25,3 +25,4 @@ async def create_applications(application: ApplicationCreate):
     }
 
     applications.append(new_app)
+    return new_app
