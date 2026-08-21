@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from dummy_data import applications
 from schemas import ApplicationCreate, ApplicationRead
 from datetime import datetime, UTC
@@ -9,7 +9,7 @@ app = FastAPI()
 async def get_applications() -> list[ApplicationRead]:
     return applications
 
-@app.post("/applications", response_model=ApplicationRead)
+@app.post("/applications", response_model=ApplicationRead, status_code=status.HTTP_201_CREATED)
 async def create_applications(application: ApplicationCreate) -> ApplicationRead:
 
     new_app = {
