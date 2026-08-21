@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 applications = [
     {
         "id": 1,
@@ -6,9 +8,9 @@ applications = [
         "status": "applied",
         "job_url": "https://careers.example.com/jobs/101",
         "notes": "Applied through the company website.",
-        "applied_at": "2026-08-01T10:30:00Z",
-        "created_at": "2026-08-01T10:30:00Z",
-        "updated_at": "2026-08-01T10:30:00Z",
+        "applied_at": datetime(2026, 8, 1, 10, 30, tzinfo=timezone.utc),
+        "created_at": datetime(2026, 8, 1, 10, 30, tzinfo=timezone.utc),
+        "updated_at": datetime(2026, 8, 1, 10, 30, tzinfo=timezone.utc),
     },
     {
         "id": 2,
@@ -17,9 +19,9 @@ applications = [
         "status": "interview",
         "job_url": "https://careers.example.com/jobs/102",
         "notes": "Technical interview scheduled for August 25.",
-        "applied_at": "2026-08-03T14:15:00Z",
-        "created_at": "2026-08-03T14:15:00Z",
-        "updated_at": "2026-08-18T09:00:00Z",
+        "applied_at": datetime(2026, 8, 3, 14, 15, tzinfo=timezone.utc),
+        "created_at": datetime(2026, 8, 3, 14, 15, tzinfo=timezone.utc),
+        "updated_at": datetime(2026, 8, 18, 9, 0, tzinfo=timezone.utc),
     },
     {
         "id": 3,
@@ -29,8 +31,8 @@ applications = [
         "job_url": "https://careers.example.com/jobs/103",
         "notes": "Update résumé before applying.",
         "applied_at": None,
-        "created_at": "2026-08-05T08:45:00Z",
-        "updated_at": "2026-08-05T08:45:00Z",
+        "created_at": datetime(2026, 8, 5, 8, 45, tzinfo=timezone.utc),
+        "updated_at": datetime(2026, 8, 5, 8, 45, tzinfo=timezone.utc),
     },
     {
         "id": 4,
@@ -39,9 +41,9 @@ applications = [
         "status": "rejected",
         "job_url": "https://careers.example.com/jobs/104",
         "notes": "Rejected after the initial screening.",
-        "applied_at": "2026-07-20T11:00:00Z",
-        "created_at": "2026-07-20T11:00:00Z",
-        "updated_at": "2026-08-02T16:20:00Z",
+        "applied_at": datetime(2026, 7, 20, 11, 0, tzinfo=timezone.utc),
+        "created_at": datetime(2026, 7, 20, 11, 0, tzinfo=timezone.utc),
+        "updated_at": datetime(2026, 8, 2, 16, 20, tzinfo=timezone.utc),
     },
     {
         "id": 5,
@@ -50,9 +52,9 @@ applications = [
         "status": "offer",
         "job_url": "https://careers.example.com/jobs/105",
         "notes": "Offer received; response required by August 28.",
-        "applied_at": "2026-07-15T13:40:00Z",
-        "created_at": "2026-07-15T13:40:00Z",
-        "updated_at": "2026-08-20T15:10:00Z",
+        "applied_at": datetime(2026, 7, 15, 13, 40, tzinfo=timezone.utc),
+        "created_at": datetime(2026, 7, 15, 13, 40, tzinfo=timezone.utc),
+        "updated_at": datetime(2026, 8, 20, 15, 10, tzinfo=timezone.utc),
     },
     {
         "id": 6,
@@ -61,8 +63,8 @@ applications = [
         "status": "applied",
         "job_url": "https://careers.example.com/jobs/106",
         "notes": "",
-        "applied_at": "2026-08-12T17:25:00Z",
-        "created_at": "2026-08-12T17:25:00Z",
-        "updated_at": "2026-08-12T17:25:00Z",
+        "applied_at": datetime(2026, 8, 12, 17, 25, tzinfo=timezone.utc),
+        "created_at": datetime(2026, 8, 12, 17, 25, tzinfo=timezone.utc),
+        "updated_at": datetime(2026, 8, 12, 17, 25, tzinfo=timezone.utc),
     },
 ]
