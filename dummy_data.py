@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
-applications = [
-    {
+applications = {
+    1: {
         "id": 1,
         "company": "Acme Technologies",
         "role": "Junior Backend Developer",
@@ -12,7 +12,7 @@ applications = [
         "created_at": datetime(2026, 8, 1, 10, 30, tzinfo=timezone.utc),
         "updated_at": datetime(2026, 8, 1, 10, 30, tzinfo=timezone.utc),
     },
-    {
+    2: {
         "id": 2,
         "company": "Northstar Labs",
         "role": "Python Developer Intern",
@@ -23,7 +23,7 @@ applications = [
         "created_at": datetime(2026, 8, 3, 14, 15, tzinfo=timezone.utc),
         "updated_at": datetime(2026, 8, 18, 9, 0, tzinfo=timezone.utc),
     },
-    {
+    3: {
         "id": 3,
         "company": "PixelForge",
         "role": "Software Engineering Intern",
@@ -34,7 +34,7 @@ applications = [
         "created_at": datetime(2026, 8, 5, 8, 45, tzinfo=timezone.utc),
         "updated_at": datetime(2026, 8, 5, 8, 45, tzinfo=timezone.utc),
     },
-    {
+    4: {
         "id": 4,
         "company": "BlueRiver Systems",
         "role": "Graduate Software Engineer",
@@ -45,7 +45,7 @@ applications = [
         "created_at": datetime(2026, 7, 20, 11, 0, tzinfo=timezone.utc),
         "updated_at": datetime(2026, 8, 2, 16, 20, tzinfo=timezone.utc),
     },
-    {
+    5: {
         "id": 5,
         "company": "Orbit Analytics",
         "role": "Junior API Developer",
@@ -56,7 +56,7 @@ applications = [
         "created_at": datetime(2026, 7, 15, 13, 40, tzinfo=timezone.utc),
         "updated_at": datetime(2026, 8, 20, 15, 10, tzinfo=timezone.utc),
     },
-    {
+    6: {
         "id": 6,
         "company": "Greenfield Software",
         "role": "FastAPI Backend Intern",
@@ -67,4 +67,4 @@ applications = [
         "created_at": datetime(2026, 8, 12, 17, 25, tzinfo=timezone.utc),
         "updated_at": datetime(2026, 8, 12, 17, 25, tzinfo=timezone.utc),
     },
-]
+}
