@@ -1,7 +1,8 @@
-from fastapi import FastAPI, status
+from fastapi import FastAPI, status, HTTPException, Path
 from dummy_data import applications
 from schemas import ApplicationCreate, ApplicationRead
 from datetime import datetime, UTC
+from typing import Annotated
 
 app = FastAPI()
 
@@ -26,3 +27,10 @@ async def create_applications(application: ApplicationCreate) -> ApplicationRead
 
     applications.append(new_app)
     return new_app
+
+@app.get("/applications/{id}", response_model=ApplicationRead)
+async def get_application(id: Annotated[int, Path(ge=1)]) -> ApplicationRead:
+    try:
+        return applications[id - 1]
+    except IndexError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
