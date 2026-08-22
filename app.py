@@ -6,8 +6,8 @@ from typing import Annotated
 
 app = FastAPI()
 
-@app.get("/applications", response_model=list[ApplicationRead])
-async def get_applications() -> list[ApplicationRead]:
+@app.get("/applications", response_model=dict[int, ApplicationRead])
+async def get_applications() -> dict[int, ApplicationRead]:
     return applications
 
 @app.post("/applications", response_model=ApplicationRead, status_code=status.HTTP_201_CREATED)
