@@ -33,3 +33,10 @@ async def get_application(id: Annotated[int, Path(ge=1)]) -> ApplicationRead:
         return applications[id]
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+@app.delete("/applications/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_application(id: Annotated[int, Path(ge=1)]):
+    try:
+        applications.pop(id)
+    except KeyError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
