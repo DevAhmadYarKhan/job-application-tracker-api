@@ -31,5 +31,5 @@ async def create_applications(application: ApplicationCreate) -> ApplicationRead
 async def get_application(id: Annotated[int, Path(ge=1)]) -> ApplicationRead:
     try:
         return applications[id]
-    except IndexError:
+    except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
