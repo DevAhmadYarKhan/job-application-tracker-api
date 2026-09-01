@@ -30,6 +30,6 @@ async def create_applications(application: ApplicationCreate) -> ApplicationRead
 @app.get("/applications/{id}", response_model=ApplicationRead)
 async def get_application(id: Annotated[int, Path(ge=1)]) -> ApplicationRead:
     try:
-        return applications[id - 1]
+        return applications[id]
     except IndexError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
