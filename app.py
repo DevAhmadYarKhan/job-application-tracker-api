@@ -12,9 +12,9 @@ async def get_applications() -> dict[int, ApplicationRead]:
 
 @app.post("/applications", response_model=ApplicationRead, status_code=status.HTTP_201_CREATED)
 async def create_applications(application: ApplicationCreate) -> ApplicationRead:
-
+    id= max(applications) + 1
     new_app = {
-        "id": len(applications) + 1,
+        "id": id,
         "company": application.company,
         "role": application.role,
         "status": application.status,
@@ -24,8 +24,10 @@ async def create_applications(application: ApplicationCreate) -> ApplicationRead
         "created_at": datetime.now(UTC),
         "updated_at": datetime.now(UTC)
     }
-
-    applications.append(new_app)
+    try:
+        applications[id] = new_app
+    except IndexError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return new_app
 
 @app.get("/applications/{id}", response_model=ApplicationRead)
