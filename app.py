@@ -24,10 +24,7 @@ async def create_applications(application: ApplicationCreate) -> ApplicationRead
         "created_at": datetime.now(UTC),
         "updated_at": datetime.now(UTC)
     }
-    try:
-        applications[id] = new_app
-    except IndexError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    applications[id] = new_app
     return new_app
 
 @app.get("/applications/{id}", response_model=ApplicationRead)
