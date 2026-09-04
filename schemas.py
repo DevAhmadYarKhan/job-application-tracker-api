@@ -2,8 +2,6 @@ from pydantic import BaseModel, Field
 from typing import Literal
 from datetime import datetime
 
-# We will not use this in @app.get("/applications") route just yet because the dummy data uses
-# strings for applied_at etc
 class ApplicationRead(BaseModel):
     id: int
     company: str = Field(max_length=100)
