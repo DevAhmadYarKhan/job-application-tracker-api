@@ -1,6 +1,6 @@
 from fastapi import FastAPI, status, HTTPException, Path
 from dummy_data import applications
-from schemas import ApplicationCreate, ApplicationRead
+from schemas import ApplicationCreate, ApplicationRead, ApplicationUpdate
 from datetime import datetime, UTC
 from typing import Annotated
 
@@ -40,3 +40,16 @@ async def delete_application(id: Annotated[int, Path(ge=1)]):
         applications.pop(id)
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+@app.patch("/applications/{id}", response_model=ApplicationRead)
+async def update_application(id: Annotated[int, Path(ge=1)], update: ApplicationUpdate) -> ApplicationRead:
+    update_data = update.model_dump(exclude_unset=True)
+    try:
+        temp = applications[id].copy()
+    except KeyError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    temp.update(update_data)
+    if temp["status"] == "saved" and temp["applied_at"] is not None:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT)
+    applications[id] = temp
+    return applications[id]
