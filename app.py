@@ -6,10 +6,12 @@ from typing import Annotated
 
 app = FastAPI()
 
+# Return all applications
 @app.get("/applications", response_model=dict[int, ApplicationRead])
 async def get_applications() -> dict[int, ApplicationRead]:
     return applications
 
+# Create an application
 @app.post("/applications", response_model=ApplicationRead, status_code=status.HTTP_201_CREATED)
 async def create_applications(application: ApplicationCreate) -> ApplicationRead:
     id= max(applications) + 1
@@ -27,6 +29,7 @@ async def create_applications(application: ApplicationCreate) -> ApplicationRead
     applications[id] = new_app
     return new_app
 
+# Get a specific application by id
 @app.get("/applications/{id}", response_model=ApplicationRead)
 async def get_application(id: Annotated[int, Path(ge=1)]) -> ApplicationRead:
     try:
@@ -34,6 +37,7 @@ async def get_application(id: Annotated[int, Path(ge=1)]) -> ApplicationRead:
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
+# Delete a specific application by id
 @app.delete("/applications/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_application(id: Annotated[int, Path(ge=1)]):
     try:
@@ -41,9 +45,10 @@ async def delete_application(id: Annotated[int, Path(ge=1)]):
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
+# Update a specific application's details (i.e. a patch) by id
 @app.patch("/applications/{id}", response_model=ApplicationRead)
 async def update_application(id: Annotated[int, Path(ge=1)], update: ApplicationUpdate) -> ApplicationRead:
-    update_data = update.model_dump(exclude_unset=True)
+    update_data = update.model_dump(exclude_unset=True) # Create dictionary with only fields that were provided
     try:
         temp = applications[id].copy()
     except KeyError:
