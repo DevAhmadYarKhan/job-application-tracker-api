@@ -1,15 +1,21 @@
-from fastapi import FastAPI, status, HTTPException, Path
+from fastapi import FastAPI, status, HTTPException, Path, Depends
+from sqlmodel import Session, select
+from database import create_db, get_session
+from models import Job
 from dummy_data import applications
 from schemas import ApplicationCreate, ApplicationRead, ApplicationUpdate
 from datetime import datetime, UTC
 from typing import Annotated
 
 app = FastAPI()
+create_db()
 
-# Return all applications
-@app.get("/applications", response_model=dict[int, ApplicationRead])
-async def get_applications() -> dict[int, ApplicationRead]:
-    return applications
+# Return all applications. We could use list[Job] itself as the response_model, but I am not sure about it yet
+@app.get("/applications", response_model=list[ApplicationRead])
+async def get_applications(session: Session = Depends(get_session)) -> list[ApplicationRead]:
+    statement = select(Job)
+    results = session.exec(statement)
+    return results.all()
 
 # Create an application
 @app.post("/applications", response_model=ApplicationRead, status_code=status.HTTP_201_CREATED)
