@@ -1,4 +1,4 @@
-from fastapi import FastAPI, status, HTTPException, Path, Depends
+from fastapi import FastAPI, status, HTTPException, Path, Depends, Query
 from sqlmodel import Session, select
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from database import create_db, get_session
@@ -16,6 +16,7 @@ create_db()
 async def get_applications(status: Literal["saved", "applied", "interview", "offer", "rejected"] | None = None,
                            sort_by: Literal["applied_at", "created_at", "updated_at"] | None = None,
                            order: Literal["asc", "desc"] = "asc",
+                           page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),
                            session: Session = Depends(get_session)) -> list[ApplicationRead]:
     statement = select(Application)
     if status:
@@ -23,6 +24,7 @@ async def get_applications(status: Literal["saved", "applied", "interview", "off
     if sort_by:
         column = getattr(Application, sort_by)
         statement = statement.order_by(column.desc() if order == "desc" else column.asc())
+    statement = statement.offset((page - 1) * page_size).limit(page_size)
     results = session.exec(statement)
     return results.all()
 
