@@ -38,11 +38,16 @@ async def create_applications(application: ApplicationCreate,
 
 # Get a specific application by id
 @app.get("/applications/{id}", response_model=ApplicationRead)
-async def get_application(id: Annotated[int, Path(ge=1)]) -> ApplicationRead:
+async def get_application(id: Annotated[int, Path(ge=1)],
+                          session: Session = Depends(get_session)) -> ApplicationRead:
     try:
-        return applications[id]
-    except KeyError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        application = session.get(Job, id)
+        if application is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    except SQLAlchemyError:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
+    return application
+
 
 # Delete a specific application by id
 @app.delete("/applications/{id}", status_code=status.HTTP_204_NO_CONTENT)
