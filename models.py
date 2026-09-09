@@ -1,6 +1,6 @@
 from sqlmodel import Field, SQLModel, String
 from typing import Literal
-from datetime import datetime
+from datetime import datetime, UTC
 
 # Repersents a table in database, attributes are column, objects are rows
 class Job(SQLModel, table=True):
@@ -11,5 +11,5 @@ class Job(SQLModel, table=True):
     job_url: str | None = Field(default=None, max_length=300)
     notes: str | None = Field(default=None, max_length=500)
     applied_at: datetime | None = None
-    created_at: datetime
-    updated_at: datetime
+    created_at: datetime = Field(default=datetime.now(UTC))
+    updated_at: datetime = Field(default=datetime.now(UTC))
