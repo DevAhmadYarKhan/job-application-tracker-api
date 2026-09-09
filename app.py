@@ -14,11 +14,15 @@ create_db()
 # Return all applications. We could use list[Application] itself as the response_model, but I am not sure about it yet
 @app.get("/applications", response_model=list[ApplicationRead])
 async def get_applications(status: Literal["saved", "applied", "interview", "offer", "rejected"] | None = None,
+                           sort_by: Literal["applied_at", "created_at", "updated_at"] | None = None,
+                           order: Literal["asc", "desc"] = "asc",
                            session: Session = Depends(get_session)) -> list[ApplicationRead]:
+    statement = select(Application)
     if status:
-        statement = select(Application).where(Application.status == status)
-    else:
-        statement = select(Application)
+        statement = statement.where(Application.status == status)
+    if sort_by:
+        column = getattr(Application, sort_by)
+        statement = statement.order_by(column.desc() if order == "desc" else column.asc())
     results = session.exec(statement)
     return results.all()
 
