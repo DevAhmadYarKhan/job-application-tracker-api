@@ -51,11 +51,16 @@ async def get_application(id: Annotated[int, Path(ge=1)],
 
 # Delete a specific application by id
 @app.delete("/applications/{id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_application(id: Annotated[int, Path(ge=1)]):
+async def delete_application(id: Annotated[int, Path(ge=1)], session: Session = Depends(get_session)):
     try:
-        applications.pop(id)
-    except KeyError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        application = session.get(Application, id)
+        if application is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        session.delete(application)
+        session.commit()
+    except SQLAlchemyError:
+        session.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
 
 # Update a specific application's details (i.e. a patch) by id
 @app.patch("/applications/{id}", response_model=ApplicationRead)
