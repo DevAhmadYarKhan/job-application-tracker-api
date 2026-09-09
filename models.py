@@ -19,5 +19,5 @@ class Application(SQLModel, table=True):
     job_url: str | None = Field(default=None, max_length=300)
     notes: str | None = Field(default=None, max_length=500)
     applied_at: datetime | None = None
-    created_at: datetime = Field(default=datetime.now(UTC))
-    updated_at: datetime = Field(default=datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
