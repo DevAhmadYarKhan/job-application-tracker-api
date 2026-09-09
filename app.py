@@ -2,7 +2,7 @@ from fastapi import FastAPI, status, HTTPException, Path, Depends
 from sqlmodel import Session, select
 from sqlalchemy.exc import SQLAlchemyError 
 from database import create_db, get_session
-from models import Job
+from models import Application
 from dummy_data import applications
 from schemas import ApplicationCreate, ApplicationRead, ApplicationUpdate
 from datetime import datetime, UTC
@@ -11,10 +11,10 @@ from typing import Annotated
 app = FastAPI()
 create_db()
 
-# Return all applications. We could use list[Job] itself as the response_model, but I am not sure about it yet
+# Return all applications. We could use list[Application] itself as the response_model, but I am not sure about it yet
 @app.get("/applications", response_model=list[ApplicationRead])
 async def get_applications(session: Session = Depends(get_session)) -> list[ApplicationRead]:
-    statement = select(Job)
+    statement = select(Application)
     results = session.exec(statement)
     return results.all()
 
@@ -24,7 +24,7 @@ async def get_applications(session: Session = Depends(get_session)) -> list[Appl
 @app.post("/applications", response_model=ApplicationRead, status_code=status.HTTP_201_CREATED)
 async def create_applications(application: ApplicationCreate,
                               session: Session = Depends(get_session)) -> ApplicationRead:
-    app = Job(company=application.company, role=application.role, status=application.status,
+    app = Application(company=application.company, role=application.role, status=application.status,
                       job_url=application.job_url, notes=application.notes,
                       applied_at=datetime.now(UTC) if application.status != "saved" else None)
     try:
@@ -41,7 +41,7 @@ async def create_applications(application: ApplicationCreate,
 async def get_application(id: Annotated[int, Path(ge=1)],
                           session: Session = Depends(get_session)) -> ApplicationRead:
     try:
-        application = session.get(Job, id)
+        application = session.get(Application, id)
         if application is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     except SQLAlchemyError:

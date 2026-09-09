@@ -3,7 +3,7 @@ from typing import Literal
 from datetime import datetime, UTC
 
 # Repersents a table in database, attributes are column, objects are rows
-class Job(SQLModel, table=True):
+class Application(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     company: str = Field(max_length=100)
     role: str = Field(max_length=100)
