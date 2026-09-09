@@ -24,17 +24,17 @@ async def get_applications(session: Session = Depends(get_session)) -> list[Appl
 @app.post("/applications", response_model=ApplicationRead, status_code=status.HTTP_201_CREATED)
 async def create_applications(application: ApplicationCreate,
                               session: Session = Depends(get_session)) -> ApplicationRead:
-    app = Application(company=application.company, role=application.role, status=application.status,
+    new_application = Application(company=application.company, role=application.role, status=application.status,
                       job_url=application.job_url, notes=application.notes,
                       applied_at=datetime.now(UTC) if application.status != "saved" else None)
     try:
-        session.add(app)
+        session.add(new_application)
         session.commit()
-        session.refresh(app)
+        session.refresh(new_application)
     except SQLAlchemyError:
         session.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
-    return app
+    return new_application
 
 # Get a specific application by id
 @app.get("/applications/{id}", response_model=ApplicationRead)
