@@ -1,6 +1,6 @@
 from fastapi import FastAPI, status, HTTPException, Path, Depends
 from sqlmodel import Session, select
-from sqlalchemy.exc import SQLAlchemyError 
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from database import create_db, get_session
 from models import Application
 from dummy_data import applications
@@ -64,14 +64,22 @@ async def delete_application(id: Annotated[int, Path(ge=1)], session: Session = 
 
 # Update a specific application's details (i.e. a patch) by id
 @app.patch("/applications/{id}", response_model=ApplicationRead)
-async def update_application(id: Annotated[int, Path(ge=1)], update: ApplicationUpdate) -> ApplicationRead:
-    update_data = update.model_dump(exclude_unset=True) # Create dictionary with only fields that were provided
-    try:
-        temp = applications[id].copy()
-    except KeyError:
+async def update_application(id: Annotated[int, Path(ge=1)], update: ApplicationUpdate,
+                             session: Session = Depends(get_session)) -> ApplicationRead:
+    application = session.get(Application, id)
+    if application is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    temp.update(update_data)
-    if temp["status"] == "saved" and temp["applied_at"] is not None:
+    update_data = update.model_dump(exclude_unset=True)
+    update_data["updated_at"] = datetime.now(UTC)
+    application.sqlmodel_update(update_data)
+    try:
+        session.add(application)
+        session.commit()
+        session.refresh(application)
+    except IntegrityError:
+        session.rollback()
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT)
-    applications[id] = temp
-    return applications[id]
+    except SQLAlchemyError:
+        session.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
+    return application
