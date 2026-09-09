@@ -1,5 +1,6 @@
 from fastapi import FastAPI, status, HTTPException, Path, Depends
 from sqlmodel import Session, select
+from sqlalchemy.exc import SQLAlchemyError 
 from database import create_db, get_session
 from models import Job
 from dummy_data import applications
@@ -17,23 +18,23 @@ async def get_applications(session: Session = Depends(get_session)) -> list[Appl
     results = session.exec(statement)
     return results.all()
 
-# Create an application
+# Create an application. applied_at and updated_at is set to current time unless status is saved, can edit later
+# using patch endpoint, but we could also allow setting them in this post endpoint. Not sure yet if I should
+# change the implementation to do that yet.
 @app.post("/applications", response_model=ApplicationRead, status_code=status.HTTP_201_CREATED)
-async def create_applications(application: ApplicationCreate) -> ApplicationRead:
-    id= max(applications) + 1
-    new_app = {
-        "id": id,
-        "company": application.company,
-        "role": application.role,
-        "status": application.status,
-        "job_url": application.job_url,
-        "notes": application.notes,
-        "applied_at": datetime.now(UTC) if application.status != "saved" else None,
-        "created_at": datetime.now(UTC),
-        "updated_at": datetime.now(UTC)
-    }
-    applications[id] = new_app
-    return new_app
+async def create_applications(application: ApplicationCreate,
+                              session: Session = Depends(get_session)) -> ApplicationRead:
+    app = Job(company=application.company, role=application.role, status=application.status,
+                      job_url=application.job_url, notes=application.notes,
+                      applied_at=datetime.now(UTC) if application.status != "saved" else None)
+    try:
+        session.add(app)
+        session.commit()
+        session.refresh(app)
+    except SQLAlchemyError:
+        session.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
+    return app
 
 # Get a specific application by id
 @app.get("/applications/{id}", response_model=ApplicationRead)
