@@ -6,15 +6,19 @@ from models import Application
 from dummy_data import applications
 from schemas import ApplicationCreate, ApplicationRead, ApplicationUpdate
 from datetime import datetime, UTC
-from typing import Annotated
+from typing import Annotated, Literal
 
 app = FastAPI()
 create_db()
 
 # Return all applications. We could use list[Application] itself as the response_model, but I am not sure about it yet
 @app.get("/applications", response_model=list[ApplicationRead])
-async def get_applications(session: Session = Depends(get_session)) -> list[ApplicationRead]:
-    statement = select(Application)
+async def get_applications(filter: Literal["saved", "applied", "interview", "offer", "rejected"] | None = None,
+                           session: Session = Depends(get_session)) -> list[ApplicationRead]:
+    if filter:
+        statement = select(Application).where(Application.status == filter)
+    else:
+        statement = select(Application)
     results = session.exec(statement)
     return results.all()
 
