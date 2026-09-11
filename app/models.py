@@ -1,7 +1,17 @@
-from sqlmodel import Field, SQLModel, String
+from sqlmodel import Field, SQLModel, String, Relationship
 from sqlalchemy import CheckConstraint
 from typing import Literal
 from datetime import datetime, UTC
+
+class User(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    email: str = Field(unique=True, index=True, max_length=255)
+    password_hash: str = Field(max_length=255)
+    name: str | None = Field(default=None, max_length=100)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    applications: list["Application"] = Relationship(back_populates="user")
 
 # Repersents a table in database, attributes are column, objects are rows
 class Application(SQLModel, table=True):
@@ -21,3 +31,6 @@ class Application(SQLModel, table=True):
     applied_at: datetime | None = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    user_id: int = Field(foreign_key="user.id", index=True)
+    user: User = Relationship(back_populates="applications")
