@@ -46,6 +46,31 @@ async def create_applications(application: ApplicationCreate,
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
     return new_application
 
+# Get statistics about the total number of applications and number of applications with each status type.
+# Inefficient due to multiple queries, more efficient way to do it that I will defer for now because
+# of SQLModel giving unexpected behaviour
+@app.get("/applications/stats")
+async def get_stats(session: Session = Depends(get_session)):
+    statement = select(func.count()).select_from(Application)
+    try:
+        total = session.exec(statement).one()
+        saved = session.exec(statement.where(Application.status == "saved")).one()
+        applied = session.exec(statement.where(Application.status == "applied")).one()
+        interview = session.exec(statement.where(Application.status == "interview")).one()
+        offer = session.exec(statement.where(Application.status == "offer")).one()
+        rejected = session.exec(statement.where(Application.status == "rejected")).one()
+    except SQLAlchemyError:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
+    stats = {
+        "total": total,
+        "saved": saved,
+        "applied": applied,
+        "interview": interview,
+        "offer": offer,
+        "rejected": rejected
+    }
+    return stats
+
 # Get a specific application by id
 @app.get("/applications/{id}", response_model=ApplicationRead)
 async def get_application(id: Annotated[int, Path(ge=1)],
