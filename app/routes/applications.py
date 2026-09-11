@@ -53,12 +53,12 @@ async def create_applications(application: ApplicationCreate,
 async def get_stats(session: AsyncSession = Depends(get_session)):
     statement = select(func.count()).select_from(Application)
     try:
-        total = await session.exec(statement).one()
-        saved = await session.exec(statement.where(Application.status == "saved")).one()
-        applied = await session.exec(statement.where(Application.status == "applied")).one()
-        interview = await session.exec(statement.where(Application.status == "interview")).one()
-        offer = await session.exec(statement.where(Application.status == "offer")).one()
-        rejected = await session.exec(statement.where(Application.status == "rejected")).one()
+        total = (await session.exec(statement)).one()
+        saved = (await session.exec(statement.where(Application.status == "saved"))).one()
+        applied = (await session.exec(statement.where(Application.status == "applied"))).one()
+        interview = (await session.exec(statement.where(Application.status == "interview"))).one()
+        offer = (await session.exec(statement.where(Application.status == "offer"))).one()
+        rejected = (await session.exec(statement.where(Application.status == "rejected"))).one()
     except SQLAlchemyError:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
     stats = {
