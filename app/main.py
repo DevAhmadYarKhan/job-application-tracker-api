@@ -1,10 +1,10 @@
 from fastapi import FastAPI, status, HTTPException, Path, Depends, Query
 from sqlmodel import Session, select
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from database import create_db, get_session
-from models import Application
-from dummy_data import applications
-from schemas import ApplicationCreate, ApplicationRead, ApplicationUpdate
+from app.database import create_db, get_session
+from app.models import Application
+from app.dummy_data import applications
+from app.schemas import ApplicationCreate, ApplicationRead, ApplicationUpdate
 from datetime import datetime, UTC
 from typing import Annotated, Literal
 
