@@ -8,6 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from app.models import Application
 from app.schemas import ApplicationCreate, ApplicationUpdate
 
+# Returns all applications in Application table in db
 async def get_applications(session: AsyncSession,
                            status: Literal["saved", "applied", "interview", "offer", "rejected"] | None = None,
                            sort_by: Literal["applied_at", "created_at", "updated_at"] | None = None,
@@ -27,6 +28,7 @@ async def get_applications(session: AsyncSession,
 
     return results.all()
 
+# Create an Application and adds it to Application table in db
 async def create_application(application: ApplicationCreate,
                              session: AsyncSession) -> Application:
     new_application = Application(company=application.company, role=application.role, status=application.status,
@@ -44,6 +46,7 @@ async def create_application(application: ApplicationCreate,
 
     return new_application
 
+# Returns total number of rows in Application table, as well as number of rows for each type of status
 async def get_application_stats(session: AsyncSession):
     statement = select(func.count()).select_from(Application)
 
@@ -69,6 +72,7 @@ async def get_application_stats(session: AsyncSession):
 
     return stats
 
+# Get a specific instance from Application db table by its id
 async def get_application(application_id: int,
                           session: AsyncSession) -> Application:
     try:
@@ -82,7 +86,7 @@ async def get_application(application_id: int,
 
     return application
 
-
+# Delete a specific instance from Application db table using its id
 async def delete_application(application_id: int, session: AsyncSession):
     try:
         application = await session.get(Application, application_id)
@@ -97,6 +101,7 @@ async def delete_application(application_id: int, session: AsyncSession):
         await session.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
 
+# Update the attributes of a specific instance in Application db table using its id
 async def update_application(application_id: int, update: ApplicationUpdate,
                              session: AsyncSession) -> Application:
     application = await session.get(Application, application_id)
