@@ -33,7 +33,8 @@ async def create_application(application: ApplicationCreate,
                              session: AsyncSession) -> Application:
     new_application = Application(company=application.company, role=application.role, status=application.status,
                       job_url=application.job_url, notes=application.notes,
-                      applied_at=datetime.now(UTC) if application.status != "saved" else None)
+                      applied_at=datetime.now(UTC) if application.status != "saved" else None,
+                      user_id=0)
 
     try:
         session.add(new_application)
