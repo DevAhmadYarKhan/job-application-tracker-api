@@ -6,7 +6,7 @@ database_url = "sqlite+aiosqlite:///database.db"
 
 engine = create_async_engine(database_url)
 
-
+# This function creates a database with all the tables defined according to SQLModel models
 async def create_db():
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)

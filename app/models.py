@@ -6,6 +6,7 @@ from pwdlib import PasswordHash
 
 password_hasher = PasswordHash.recommended()
 
+# Represents a table in database for storing Users, attributes are column, objects are rows
 class User(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     email: str = Field(unique=True, index=True, max_length=255)
@@ -22,7 +23,7 @@ class User(SQLModel, table=True):
     def check_password(self, password: str) -> bool:
         return password_hasher.verify(password, self.password_hash)
 
-# Repersents a table in database, attributes are column, objects are rows
+# Repersents a table in database for storing applications
 class Application(SQLModel, table=True):
     __table_args__ = (
         CheckConstraint(

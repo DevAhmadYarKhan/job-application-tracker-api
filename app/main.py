@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from app.database import create_db
 from app.routes import applications
 
+# Everything before yield runs at startup, everything after yield runs at shutdown. 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await create_db()

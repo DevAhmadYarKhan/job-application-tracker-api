@@ -31,6 +31,9 @@ class ApplicationUpdate(BaseModel):
     notes: str | None = Field(default=None, max_length=500)
     applied_at: datetime | None = None
 
+    # Model validator with mode="after" runs after the whole model has been validated. This ensures
+    # that you cannot update an application such that the status has value 'saved' but there is
+    # also an applied_at value
     @model_validator(mode="after")
     def validate_appication_date(self):
         if self.status == "saved" and self.applied_at != None:

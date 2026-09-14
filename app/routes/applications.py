@@ -20,7 +20,7 @@ async def get_applications(status: Literal["saved", "applied", "interview", "off
 # using patch endpoint, but we could also allow setting them in this post endpoint. Not sure yet if I should
 # change the implementation to do that yet.
 @router.post("/", response_model=ApplicationRead, status_code=status.HTTP_201_CREATED)
-async def create_applications(application: ApplicationCreate,
+async def create_application(application: ApplicationCreate,
                               session: AsyncSession = Depends(get_session)) -> ApplicationRead:
     return await application_service.create_application(application, session)
 
