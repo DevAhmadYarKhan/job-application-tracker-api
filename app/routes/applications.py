@@ -1,7 +1,8 @@
-from fastapi import status, Path, Depends, Query, APIRouter, Request
+from fastapi import status, Path, Depends, Query, APIRouter
 from sqlmodel.ext.asyncio.session import AsyncSession
 from typing import Annotated, Literal
 from app.database import get_session
+from app.models import User
 from app.schemas import ApplicationCreate, ApplicationRead, ApplicationUpdate
 from app.services import applications as application_service
 from app.services import auth as auth_service
@@ -25,9 +26,10 @@ async def get_applications(user: Annotated[User, Depends(auth_service.get_curren
 # using patch endpoint, but we could also allow setting them in this post endpoint. Not sure yet if I should
 # change the implementation to do that yet.
 @router.post("/", response_model=ApplicationRead, status_code=status.HTTP_201_CREATED)
-async def create_application(application: ApplicationCreate,
+async def create_application(user: Annotated[User, Depends(auth_service.get_current_user)],
+                             application: ApplicationCreate,
                               session: AsyncSession = Depends(get_session)) -> ApplicationRead:
-    return await application_service.create_application(application, session)
+    return await application_service.create_application(user, application, session)
 
 # Get statistics about the total number of applications and number of applications with each status type.
 # Inefficient due to multiple queries, more efficient way to do it that I will defer for now because

@@ -34,12 +34,13 @@ async def get_applications(user: User,
     return results.all()
 
 # Create an Application and adds it to Application table in db
-async def create_application(application: ApplicationCreate,
+async def create_application(user: User,
+                             application: ApplicationCreate,
                              session: AsyncSession) -> Application:
     new_application = Application(company=application.company, role=application.role, status=application.status,
                       job_url=application.job_url, notes=application.notes,
                       applied_at=datetime.now(UTC) if application.status != "saved" else None,
-                      user_id=0)
+                      user_id=user.id)
 
     try:
         session.add(new_application)
