@@ -114,30 +114,36 @@ async def delete_application(user: User, application_id: int, db: AsyncSession):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Application not found")
 
 # Update the attributes of a specific instance in Application db table using its id
-async def update_application(application_id: int, update: ApplicationUpdate,
-                             session: AsyncSession) -> Application:
-    application = await session.get(Application, application_id)
+async def update_application(user: User,
+                             application_id: int, update: ApplicationUpdate,
+                             db: AsyncSession) -> Application:
+    update_data = update.model_dump(exclude_unset=True)
+    update_data["updated_at"] = datetime.now(UTC)
+
+    try:
+        statement = select(Application).where(Application.id == application_id,
+                                              Application.user_id == user.id)
+        application = (await db.exec(statement)).one_or_none()
+
+    except SQLAlchemyError:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
 
     if application is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-
-    update_data = update.model_dump(exclude_unset=True)
-
-    update_data["updated_at"] = datetime.now(UTC)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Application not found")
 
     application.sqlmodel_update(update_data)
 
     try:
-        session.add(application)
-        await session.commit()
-        await session.refresh(application)
+        db.add(application)
+        await db.commit()
+        await db.refresh(application)
 
     except IntegrityError:
-        await session.rollback()
+        await db.rollback()
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT)
 
     except SQLAlchemyError:
-        await session.rollback()
+        await db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
 
     return application
