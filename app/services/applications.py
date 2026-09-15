@@ -5,17 +5,17 @@ from sqlalchemy import func
 from datetime import datetime, UTC
 from typing import Literal
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from app.models import Application
+from app.models import Application, User
 from app.schemas import ApplicationCreate, ApplicationUpdate
 
 # Returns all applications in Application table in db
-async def get_applications(request: Request,
+async def get_applications(user: User,
                            db: AsyncSession,
                            app_status: Literal["saved", "applied", "interview", "offer", "rejected"] | None = None,
                            sort_by: Literal["applied_at", "created_at", "updated_at"] | None = None,
                            order: Literal["asc", "desc"] = "asc",
                            page: int = 1, page_size: int = 20) -> list[Application]:
-    user_id = request.session.get("user_id")
+    user_id = user.id
 
     if user_id is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not logged in")

@@ -4,19 +4,20 @@ from typing import Annotated, Literal
 from app.database import get_session
 from app.schemas import ApplicationCreate, ApplicationRead, ApplicationUpdate
 from app.services import applications as application_service
+from app.services import auth as auth_service
 
 router = APIRouter(prefix="/applications", tags=["applications"],)
 
 # Return all applications. We could use list[Application] itself as the response_model, but I am not sure about it yet
 @router.get("/", response_model=list[ApplicationRead])
-async def get_applications(request: Request,
+async def get_applications(user: Annotated[User, Depends(auth_service.get_current_user)],
                            db: AsyncSession = Depends(get_session),
                            status: Literal["saved", "applied", "interview", "offer", "rejected"] | None = None,
                            sort_by: Literal["applied_at", "created_at", "updated_at"] | None = None,
                            order: Literal["asc", "desc"] = "asc",
                            page: int = Query(1, ge=1),
                            page_size: int = Query(20, ge=1, le=100)) -> list[ApplicationRead]:
-    return await application_service.get_applications(request=request, db=db,
+    return await application_service.get_applications(user=user, db=db,
                                                       app_status=status, sort_by=sort_by,
                                                       order=order, page=page, page_size=page_size)
 
