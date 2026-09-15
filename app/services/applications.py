@@ -80,16 +80,20 @@ async def get_application_stats(user: User, db: AsyncSession):
     return stats
 
 # Get a specific instance from Application db table by its id
-async def get_application(application_id: int,
-                          session: AsyncSession) -> Application:
+async def get_application(user: User,
+                          application_id: int,
+                          db: AsyncSession) -> Application:
     try:
-        application = await session.get(Application, application_id)
-
-        if application is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        statement = select(Application).where(Application.id == application_id,
+                                              Application.user_id == user.id)
+        result = await db.exec(statement)
+        application = result.one_or_none()
 
     except SQLAlchemyError:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
+
+    if application is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Application not found")
 
     return application
 

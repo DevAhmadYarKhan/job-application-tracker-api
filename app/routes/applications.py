@@ -41,9 +41,10 @@ async def get_stats(user: Annotated[User, Depends(auth_service.get_current_user)
 
 # Get a specific application by id
 @router.get("/{id}", response_model=ApplicationRead)
-async def get_application(id: Annotated[int, Path(ge=1)],
-                          session: AsyncSession = Depends(get_session)) -> ApplicationRead:
-    return await application_service.get_application(id, session)
+async def get_application(user: Annotated[User, Depends(auth_service.get_current_user)],
+                          id: Annotated[int, Path(ge=1)],
+                          db: Annotated[AsyncSession, Depends(get_session)]) -> ApplicationRead:
+    return await application_service.get_application(user, id, db)
 
 
 # Delete a specific application by id
