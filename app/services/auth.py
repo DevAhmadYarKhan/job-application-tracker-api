@@ -1,6 +1,7 @@
 from fastapi import HTTPException, status, Request
+from sqlmodel import select
 from app.models import User
-from app.schemas import UserCreate
+from app.schemas import UserCreate, UserLogin
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
@@ -41,3 +42,28 @@ async def signup(user: UserCreate, request: Request, db: AsyncSession) -> User:
     request.session.clear()
     request.session["user_id"] = new_user.id
     return new_user
+
+
+async def login(data: UserLogin, request: Request, db: AsyncSession) -> User:
+    statement = select(User).where(User.email == data.email)
+
+    try:
+        user = (await db.exec(statement)).one_or_none()
+
+    except SQLAlchemyError:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
+
+    if user is None or not user.check_password(data.password):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Incorrect email or password")
+
+    request.session.clear()
+    request.session["user_id"] = user.id
+    return user
+
+
+async def logout(request: Request):
+    request.session.clear()
+    return {
+        "message": "Logged out"
+    }
