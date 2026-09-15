@@ -1,4 +1,5 @@
 from sqlmodel import Field, SQLModel, String, Relationship
+from pydantic import EmailStr
 from sqlalchemy import CheckConstraint
 from typing import Literal
 from datetime import datetime, UTC
@@ -9,7 +10,7 @@ password_hasher = PasswordHash.recommended()
 # Represents a table in database for storing Users, attributes are column, objects are rows
 class User(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    email: str = Field(unique=True, index=True, max_length=255)
+    email: EmailStr = Field(unique=True, index=True, max_length=255)
     password_hash: str = Field(max_length=255)
     name: str | None = Field(default=None, max_length=100)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
