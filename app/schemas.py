@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, EmailStr
 from typing import Literal
 from datetime import datetime
 
@@ -39,3 +39,17 @@ class ApplicationUpdate(BaseModel):
         if self.status == "saved" and self.applied_at != None:
             raise ValueError("'applied_at' cannot be set to non-None while 'status' is 'saved'")
         return self
+
+class UserCreate(BaseModel):
+    email: EmailStr = Field(max_length=100)
+    password: str = Field(min_length=1, max_length=100)
+    name: str = Field(max_length=100)
+
+class UserRead(BaseModel):
+    id: int
+    email: EmailStr = Field(max_length=255)
+    name: str = Field(max_length=100)
+
+class UserLogin(BaseModel):
+    email: EmailStr = Field(max_length=100)
+    password: str = Field(min_length=1, max_length=100)
