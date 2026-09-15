@@ -42,14 +42,14 @@ class ApplicationUpdate(BaseModel):
 
 class UserCreate(BaseModel):
     email: EmailStr = Field(max_length=100)
+    username: str = Field(max_length=100)
     password: str = Field(min_length=1, max_length=100)
-    name: str = Field(max_length=100)
 
 class UserRead(BaseModel):
     id: int
     email: EmailStr = Field(max_length=255)
-    name: str = Field(max_length=100)
+    username: str = Field(max_length=100)
 
 class UserLogin(BaseModel):
-    email: EmailStr = Field(max_length=100)
+    username: str = Field(max_length=100)
     password: str = Field(min_length=1, max_length=100)

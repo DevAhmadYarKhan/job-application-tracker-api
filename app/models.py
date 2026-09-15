@@ -11,8 +11,8 @@ password_hasher = PasswordHash.recommended()
 class User(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     email: EmailStr = Field(unique=True, index=True, max_length=255)
+    username: str | None = Field(default=None, max_length=100)
     password_hash: str = Field(max_length=255)
-    name: str | None = Field(default=None, max_length=100)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
