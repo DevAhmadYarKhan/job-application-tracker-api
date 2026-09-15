@@ -1,4 +1,4 @@
-from fastapi import status, Path, Depends, Query, APIRouter
+from fastapi import status, Path, Depends, Query, APIRouter, Request
 from sqlmodel.ext.asyncio.session import AsyncSession
 from typing import Annotated, Literal
 from app.database import get_session
@@ -9,12 +9,16 @@ router = APIRouter(prefix="/applications", tags=["applications"],)
 
 # Return all applications. We could use list[Application] itself as the response_model, but I am not sure about it yet
 @router.get("/", response_model=list[ApplicationRead])
-async def get_applications(status: Literal["saved", "applied", "interview", "offer", "rejected"] | None = None,
+async def get_applications(request: Request,
+                           db: AsyncSession = Depends(get_session),
+                           status: Literal["saved", "applied", "interview", "offer", "rejected"] | None = None,
                            sort_by: Literal["applied_at", "created_at", "updated_at"] | None = None,
                            order: Literal["asc", "desc"] = "asc",
-                           page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),
-                           session: AsyncSession = Depends(get_session)) -> list[ApplicationRead]:
-    return await application_service.get_applications(session, status, sort_by, order, page, page_size)
+                           page: int = Query(1, ge=1),
+                           page_size: int = Query(20, ge=1, le=100)) -> list[ApplicationRead]:
+    return await application_service.get_applications(request=request, db=db,
+                                                      app_status=status, sort_by=sort_by,
+                                                      order=order, page=page, page_size=page_size)
 
 # Create an application. applied_at and updated_at is set to current time unless status is saved, can edit later
 # using patch endpoint, but we could also allow setting them in this post endpoint. Not sure yet if I should

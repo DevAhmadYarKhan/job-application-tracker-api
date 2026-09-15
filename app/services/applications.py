@@ -1,4 +1,4 @@
-from fastapi import status, HTTPException
+from fastapi import status, HTTPException, Request
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy import func
@@ -9,22 +9,27 @@ from app.models import Application
 from app.schemas import ApplicationCreate, ApplicationUpdate
 
 # Returns all applications in Application table in db
-async def get_applications(session: AsyncSession,
-                           status: Literal["saved", "applied", "interview", "offer", "rejected"] | None = None,
+async def get_applications(request: Request,
+                           db: AsyncSession,
+                           app_status: Literal["saved", "applied", "interview", "offer", "rejected"] | None = None,
                            sort_by: Literal["applied_at", "created_at", "updated_at"] | None = None,
                            order: Literal["asc", "desc"] = "asc",
                            page: int = 1, page_size: int = 20) -> list[Application]:
-    statement = select(Application)
+    user_id = request.session.get("user_id")
 
-    if status:
-        statement = statement.where(Application.status == status)
+    if user_id is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not logged in")
+
+    statement = select(Application).where(Application.user_id == user_id)
+    if app_status:
+        statement = statement.where(Application.status == app_status)
 
     if sort_by:
         column = getattr(Application, sort_by)
         statement = statement.order_by(column.desc() if order == "desc" else column.asc())
 
     statement = statement.offset((page - 1) * page_size).limit(page_size)
-    results = await session.exec(statement)
+    results = await db.exec(statement)
 
     return results.all()
 
