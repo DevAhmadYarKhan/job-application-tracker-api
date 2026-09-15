@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from typing import Annotated
 from sqlmodel.ext.asyncio.session import AsyncSession
 from app.models import User
-from app.schemas import UserRead, UserCreate, UserLogin
+from app.schemas import UserRead, UserCreate, UserLogin, Token
 from app.database import get_session
 from app.services import auth as auth_service
 
@@ -18,7 +18,7 @@ async def me(user: Annotated[User, Depends(auth_service.get_current_user)]) -> U
 async def signup(user: UserCreate, db: AsyncSession = Depends(get_session)) -> UserRead:
     return await auth_service.signup(user=user, db=db)
 
-@router.post("/token")
+@router.post("/token", response_model=Token)
 async def  login(data: Annotated[OAuth2PasswordRequestForm, Depends()],
-                 db: AsyncSession = Depends(get_session)):
+                 db: AsyncSession = Depends(get_session)) -> Token:
     return await auth_service.login(data=data, db=db)
