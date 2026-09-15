@@ -89,7 +89,7 @@ async def login(data: OAuth2PasswordRequestForm, db: AsyncSession):
 
     if user is None or not user.check_password(data.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Incorrect email or password")
+                            detail="Incorrect username or password")
 
     token = create_access_token(subject=str(user.id),
                                 expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
