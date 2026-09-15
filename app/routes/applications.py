@@ -49,8 +49,9 @@ async def get_application(user: Annotated[User, Depends(auth_service.get_current
 
 # Delete a specific application by id
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_application(id: Annotated[int, Path(ge=1)], session: AsyncSession = Depends(get_session)):
-    await application_service.delete_application(id, session)
+async def delete_application(user: Annotated[User, Depends(auth_service.get_current_user)],
+                             id: Annotated[int, Path(ge=1)], db: AsyncSession = Depends(get_session)):
+    await application_service.delete_application(user, id, db)
 
 # Update a specific application's details (i.e. a patch) by id
 @router.patch("/{id}", response_model=ApplicationRead)

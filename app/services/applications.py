@@ -98,19 +98,20 @@ async def get_application(user: User,
     return application
 
 # Delete a specific instance from Application db table using its id
-async def delete_application(application_id: int, session: AsyncSession):
+async def delete_application(user: User, application_id: int, db: AsyncSession):
     try:
-        application = await session.get(Application, application_id)
-
-        if application is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-
-        await session.delete(application)
-        await session.commit()
+        statement = select(Application).where(Application.id == application_id,
+                                              Application.user_id == user.id)
+        application = (await db.exec(statement)).one_or_none()
+        await db.delete(application)
+        await db.commit()
 
     except SQLAlchemyError:
-        await session.rollback()
+        await db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
+
+    if application is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Application not found")
 
 # Update the attributes of a specific instance in Application db table using its id
 async def update_application(application_id: int, update: ApplicationUpdate,
