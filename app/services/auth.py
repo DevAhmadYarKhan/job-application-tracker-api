@@ -79,7 +79,7 @@ async def signup(user: UserCreate, db: AsyncSession) -> User:
 
 # Takes login data according to the OAuth2PasswordRequestForm schema, then creates a JWT token if
 # the credentials are correct and returns it.
-async def login(data: Annotated[OAuth2PasswordRequestForm, Depends()], db: AsyncSession):
+async def login(data: OAuth2PasswordRequestForm, db: AsyncSession):
     statement = select(User).where(User.username == data.username)
     try:
         user = (await db.exec(statement)).one_or_none()
