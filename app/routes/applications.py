@@ -35,8 +35,9 @@ async def create_application(user: Annotated[User, Depends(auth_service.get_curr
 # Inefficient due to multiple queries, more efficient way to do it that I will defer for now because
 # of SQLModel giving unexpected behaviour
 @router.get("/stats")
-async def get_stats(session: AsyncSession = Depends(get_session)):
-    return await application_service.get_application_stats(session)
+async def get_stats(user: Annotated[User, Depends(auth_service.get_current_user)],
+                    db: Annotated[AsyncSession, Depends(get_session)]):
+    return await application_service.get_application_stats(user, db)
 
 # Get a specific application by id
 @router.get("/{id}", response_model=ApplicationRead)

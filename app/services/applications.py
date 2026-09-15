@@ -54,16 +54,16 @@ async def create_application(user: User,
     return new_application
 
 # Returns total number of rows in Application table, as well as number of rows for each type of status
-async def get_application_stats(session: AsyncSession):
-    statement = select(func.count()).select_from(Application)
+async def get_application_stats(user: User, db: AsyncSession):
+    statement = select(func.count()).select_from(Application).where(Application.user_id == user.id)
 
     try:
-        total = (await session.exec(statement)).one()
-        saved = (await session.exec(statement.where(Application.status == "saved"))).one()
-        applied = (await session.exec(statement.where(Application.status == "applied"))).one()
-        interview = (await session.exec(statement.where(Application.status == "interview"))).one()
-        offer = (await session.exec(statement.where(Application.status == "offer"))).one()
-        rejected = (await session.exec(statement.where(Application.status == "rejected"))).one()
+        total = (await db.exec(statement)).one()
+        saved = (await db.exec(statement.where(Application.status == "saved"))).one()
+        applied = (await db.exec(statement.where(Application.status == "applied"))).one()
+        interview = (await db.exec(statement.where(Application.status == "interview"))).one()
+        offer = (await db.exec(statement.where(Application.status == "offer"))).one()
+        rejected = (await db.exec(statement.where(Application.status == "rejected"))).one()
 
     except SQLAlchemyError:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
