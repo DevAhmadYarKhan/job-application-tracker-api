@@ -10,7 +10,7 @@ from sqlmodel import select
 from app.models import User
 from app.schemas import UserCreate
 from app.database import get_session
-from config import SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
+from app.config import SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
 
 
 ALGORITHM = "HS256"
