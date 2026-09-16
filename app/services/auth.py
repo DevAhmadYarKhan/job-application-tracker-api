@@ -32,6 +32,7 @@ def create_access_token(*, subject: str, expires_delta: timedelta) -> str:
 # Takes a JWT token and returns the user associated with it. Passed as a dependency in routes.
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)],
                            db: Annotated[AsyncSession, Depends(get_session)]) -> User:
+    
     credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                           detail="Could not validate credentials",
                                           headers={"WWW-Authenticate": "Bearer"})
@@ -45,7 +46,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)],
 
         user_id = int(user_id)
 
-    except (InvalidTokenError, InvalidSubjectError):
+    except (InvalidTokenError, InvalidSubjectError, ValueError):
         raise credentials_exception
 
     user = await db.get(User, user_id)
