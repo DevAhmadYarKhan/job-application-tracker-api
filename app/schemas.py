@@ -14,6 +14,8 @@ class ApplicationRead(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+
+
 # Schema used to validate data representing new application instance to be created
 class ApplicationCreate(BaseModel):
     company: str = Field(max_length=100)
@@ -21,6 +23,8 @@ class ApplicationCreate(BaseModel):
     status: Literal["saved", "applied", "interview", "offer", "rejected"]
     job_url: str | None = Field(default=None, max_length=300)
     notes: str | None = Field(default=None, max_length=500)
+
+
 
 # Schema used to validate data for patching an application, hence most fields are optional
 class ApplicationUpdate(BaseModel):
@@ -40,19 +44,24 @@ class ApplicationUpdate(BaseModel):
             raise ValueError("'applied_at' cannot be set to non-None while 'status' is 'saved'")
         return self
 
+    
+
 class UserCreate(BaseModel):
     email: EmailStr = Field(max_length=100)
     username: str = Field(max_length=100)
     password: str = Field(min_length=1, max_length=100)
+
 
 class UserRead(BaseModel):
     id: int
     email: EmailStr = Field(max_length=255)
     username: str = Field(max_length=100)
 
+
 class UserLogin(BaseModel):
     username: str = Field(max_length=100)
     password: str = Field(min_length=1, max_length=100)
+
 
 class Token(BaseModel):
     access_token: str

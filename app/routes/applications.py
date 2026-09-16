@@ -7,9 +7,11 @@ from app.schemas import ApplicationCreate, ApplicationRead, ApplicationUpdate
 from app.services import applications as application_service
 from app.services import auth as auth_service
 
+
 router = APIRouter(prefix="/applications", tags=["applications"],)
 
-# Return all applications. We could use list[Application] itself as the response_model, but I am not sure about it yet
+
+# Return all applications.
 @router.get("/", response_model=list[ApplicationRead])
 async def get_applications(user: Annotated[User, Depends(auth_service.get_current_user)],
                            db: AsyncSession = Depends(get_session),
@@ -22,14 +24,16 @@ async def get_applications(user: Annotated[User, Depends(auth_service.get_curren
                                                       app_status=status, sort_by=sort_by,
                                                       order=order, page=page, page_size=page_size)
 
-# Create an application. applied_at and updated_at is set to current time unless status is saved, can edit later
-# using patch endpoint, but we could also allow setting them in this post endpoint. Not sure yet if I should
-# change the implementation to do that yet.
+
+
+# Create an application.
 @router.post("/", response_model=ApplicationRead, status_code=status.HTTP_201_CREATED)
 async def create_application(user: Annotated[User, Depends(auth_service.get_current_user)],
                              application: ApplicationCreate,
                               session: AsyncSession = Depends(get_session)) -> ApplicationRead:
     return await application_service.create_application(user, application, session)
+
+
 
 # Get statistics about the total number of applications and number of applications with each status type.
 # Inefficient due to multiple queries, more efficient way to do it that I will defer for now because
@@ -39,6 +43,8 @@ async def get_stats(user: Annotated[User, Depends(auth_service.get_current_user)
                     db: Annotated[AsyncSession, Depends(get_session)]):
     return await application_service.get_application_stats(user, db)
 
+
+
 # Get a specific application by id
 @router.get("/{id}", response_model=ApplicationRead)
 async def get_application(user: Annotated[User, Depends(auth_service.get_current_user)],
@@ -47,11 +53,14 @@ async def get_application(user: Annotated[User, Depends(auth_service.get_current
     return await application_service.get_application(user, id, db)
 
 
+
 # Delete a specific application by id
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_application(user: Annotated[User, Depends(auth_service.get_current_user)],
                              id: Annotated[int, Path(ge=1)], db: AsyncSession = Depends(get_session)):
     await application_service.delete_application(user, id, db)
+
+
 
 # Update a specific application's details (i.e. a patch) by id
 @router.patch("/{id}", response_model=ApplicationRead)

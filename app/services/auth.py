@@ -8,7 +8,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlmodel import select
 from app.models import User
-from app.schemas import UserCreate, UserLogin
+from app.schemas import UserCreate
 from app.database import get_session
 
 
@@ -16,6 +16,7 @@ from app.database import get_session
 SECRET_KEY = "random-key"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
@@ -57,7 +58,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)],
     return user
 
 
-# Takes a username and password and stores it (with the password hashed)
+# Takes a username and password and stores it in db (with the password hashed)
 async def signup(user: UserCreate, db: AsyncSession) -> User:
     new_user = User(email=user.email, password_hash="", username=user.username)
     new_user.set_password(user.password)
@@ -74,6 +75,7 @@ async def signup(user: UserCreate, db: AsyncSession) -> User:
     except SQLAlchemyError:
         await db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
+    
     return new_user
 
 

@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from starlette.middleware.sessions import SessionMiddleware
 from contextlib import asynccontextmanager
 from app.database import create_db
 from app.routes import applications, auth

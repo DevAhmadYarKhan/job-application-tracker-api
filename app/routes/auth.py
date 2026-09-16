@@ -1,23 +1,29 @@
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import Annotated
 from sqlmodel.ext.asyncio.session import AsyncSession
 from app.models import User
-from app.schemas import UserRead, UserCreate, UserLogin, Token
+from app.schemas import UserRead, UserCreate, Token
 from app.database import get_session
 from app.services import auth as auth_service
 
 
 router = APIRouter(tags=["authorization"])
 
+
+# Get details about current user
 @router.get("/me", response_model=UserRead)
 async def me(user: Annotated[User, Depends(auth_service.get_current_user)]) -> UserRead:
     return user
 
+
+# Create a user
 @router.post("/signup", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 async def signup(user: UserCreate, db: AsyncSession = Depends(get_session)) -> UserRead:
     return await auth_service.signup(user=user, db=db)
 
+
+# Get a JWT token for authentication (login)
 @router.post("/token", response_model=Token)
 async def  login(data: Annotated[OAuth2PasswordRequestForm, Depends()],
                  db: AsyncSession = Depends(get_session)) -> Token:

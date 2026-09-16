@@ -1,4 +1,4 @@
-from fastapi import status, HTTPException, Request
+from fastapi import status, HTTPException
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy import func
@@ -7,6 +7,7 @@ from typing import Literal
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from app.models import Application, User
 from app.schemas import ApplicationCreate, ApplicationUpdate
+
 
 # Returns all applications in Application table in db
 async def get_applications(user: User,
@@ -21,6 +22,7 @@ async def get_applications(user: User,
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not logged in")
 
     statement = select(Application).where(Application.user_id == user_id)
+
     if app_status:
         statement = statement.where(Application.status == app_status)
 
@@ -32,6 +34,7 @@ async def get_applications(user: User,
     results = await db.exec(statement)
 
     return results.all()
+
 
 # Create an Application and adds it to Application table in db
 async def create_application(user: User,
@@ -53,7 +56,9 @@ async def create_application(user: User,
 
     return new_application
 
+
 # Returns total number of rows in Application table, as well as number of rows for each type of status
+# Very inefficient current due to a lot of unnecessary calls, will fix later.
 async def get_application_stats(user: User, db: AsyncSession):
     statement = select(func.count()).select_from(Application).where(Application.user_id == user.id)
 
@@ -79,6 +84,8 @@ async def get_application_stats(user: User, db: AsyncSession):
 
     return stats
 
+
+
 # Get a specific instance from Application db table by its id
 async def get_application(user: User,
                           application_id: int,
@@ -97,6 +104,8 @@ async def get_application(user: User,
 
     return application
 
+
+
 # Delete a specific instance from Application db table using its id
 async def delete_application(user: User, application_id: int, db: AsyncSession):
     try:
@@ -112,6 +121,8 @@ async def delete_application(user: User, application_id: int, db: AsyncSession):
 
     if application is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Application not found")
+
+
 
 # Update the attributes of a specific instance in Application db table using its id
 async def update_application(user: User,
