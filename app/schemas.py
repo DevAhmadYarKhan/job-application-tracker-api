@@ -35,12 +35,37 @@ class ApplicationUpdate(BaseModel):
     notes: str | None = Field(default=None, max_length=500)
     applied_at: datetime | None = None
 
+    # Validator checks before creating ApplicationUpdate instance that certain fields are not being
+    # made null, and raises error if they are.
+    @model_validator(mode="before")
+    @classmethod
+    def reject_nulls(cls, data):
+        non_nullable_fields = {
+            "company",
+            "role",
+            "status",
+            "job_url",
+            "notes",
+        }
+
+        if isinstance(data, dict):
+            null_fields = []
+
+            for key, value in data.items():
+                if key in non_nullable_fields and value is None:
+                    null_fields.append(key)
+
+            if null_fields:
+                raise ValueError(f"Fields cannot be null: {', '.join(null_fields)}")
+
+        return data
+
     # Model validator with mode="after" runs after the whole model has been validated. This ensures
     # that you cannot update an application such that the status has value 'saved' but there is
     # also an applied_at value
     @model_validator(mode="after")
     def validate_appication_date(self):
-        if self.status == "saved" and self.applied_at != None:
+        if self.status == "saved" and self.applied_at is not None:
             raise ValueError("'applied_at' cannot be set to non-None while 'status' is 'saved'")
         return self
 
