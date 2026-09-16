@@ -36,8 +36,6 @@ async def create_application(user: Annotated[User, Depends(auth_service.get_curr
 
 
 # Get statistics about the total number of applications and number of applications with each status type.
-# Inefficient due to multiple queries, more efficient way to do it that I will defer for now because
-# of SQLModel giving unexpected behaviour
 @router.get("/stats")
 async def get_stats(user: Annotated[User, Depends(auth_service.get_current_user)],
                     db: Annotated[AsyncSession, Depends(get_session)]):

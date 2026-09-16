@@ -1,7 +1,7 @@
 from fastapi import status, HTTPException
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlalchemy import func
+from sqlalchemy import func, case
 from datetime import datetime, UTC
 from typing import Literal
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
@@ -57,32 +57,50 @@ async def create_application(user: User,
     return new_application
 
 
-# Returns total number of rows in Application table, as well as number of rows for each type of status
-# Very inefficient current due to a lot of unnecessary calls, will fix later.
+# Returns total number of applications for a user, as well as number of applications of each type of status
 async def get_application_stats(user: User, db: AsyncSession):
-    statement = select(func.count()).select_from(Application).where(Application.user_id == user.id)
+    statement = (
+        select(
+            func.count().label("total"),
+            func.count(
+                case((Application.status == "saved", 1))
+            ).label("saved"),
+            func.count(
+                case((Application.status == "applied", 1))
+            ).label("applied"),
+            func.count(
+                case((Application.status == "interview", 1))
+            ).label("interview"),
+            func.count(
+                case((Application.status == "offer", 1))
+            ).label("offer"),
+            func.count(
+                case((Application.status == "rejected", 1))
+            ).label("rejected"),
+        )
+        .select_from(Application)
+        .where(Application.user_id == user.id)
+    )
 
     try:
-        total = (await db.exec(statement)).one()
-        saved = (await db.exec(statement.where(Application.status == "saved"))).one()
-        applied = (await db.exec(statement.where(Application.status == "applied"))).one()
-        interview = (await db.exec(statement.where(Application.status == "interview"))).one()
-        offer = (await db.exec(statement.where(Application.status == "offer"))).one()
-        rejected = (await db.exec(statement.where(Application.status == "rejected"))).one()
+        total, saved, applied, interview, offer, rejected = (
+            await db.exec(statement)
+        ).one()
 
-    except SQLAlchemyError:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
+    except SQLAlchemyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database error",
+        ) from exc
 
-    stats = {
+    return {
         "total": total,
         "saved": saved,
         "applied": applied,
         "interview": interview,
         "offer": offer,
-        "rejected": rejected
+        "rejected": rejected,
     }
-
-    return stats
 
 
 
