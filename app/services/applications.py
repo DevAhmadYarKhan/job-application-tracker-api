@@ -152,11 +152,16 @@ async def update_application(user: User,
                              application_id: int, update: ApplicationUpdate,
                              db: AsyncSession) -> Application:
     update_data = update.model_dump(exclude_unset=True)
+
+    if update_data.get("status") == "saved":
+        update_data["applied_at"] = None
+
     update_data["updated_at"] = datetime.now(UTC)
 
+    statement = select(Application).where(Application.id == application_id,
+                                        Application.user_id == user.id)
+
     try:
-        statement = select(Application).where(Application.id == application_id,
-                                              Application.user_id == user.id)
         application = (await db.exec(statement)).one_or_none()
 
     except SQLAlchemyError:
