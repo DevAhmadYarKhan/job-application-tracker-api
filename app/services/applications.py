@@ -126,10 +126,15 @@ async def get_application(user: User,
 
 # Delete a specific instance from Application db table using its id
 async def delete_application(user: User, application_id: int, db: AsyncSession):
+    statement = select(Application).where(Application.id == application_id,
+                                        Application.user_id == user.id)
     try:
-        statement = select(Application).where(Application.id == application_id,
-                                              Application.user_id == user.id)
         application = (await db.exec(statement)).one_or_none()
+
+        if application is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Application not found")
+        
         await db.delete(application)
         await db.commit()
 
