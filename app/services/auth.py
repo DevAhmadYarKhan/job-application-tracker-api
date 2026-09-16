@@ -10,12 +10,10 @@ from sqlmodel import select
 from app.models import User
 from app.schemas import UserCreate
 from app.database import get_session
+from config import SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
 
 
-# These should be environment variables, will fix that later
-SECRET_KEY = "random-key"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 15
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 

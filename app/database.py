@@ -1,10 +1,10 @@
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
+from config import DATABASE_URL
 
-database_url = "sqlite+aiosqlite:///database.db"
 
-engine = create_async_engine(database_url)
+engine = create_async_engine(DATABASE_URL)
 
 # This function creates a database with all the tables defined according to SQLModel models
 async def create_db():
