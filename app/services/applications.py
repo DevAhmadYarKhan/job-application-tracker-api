@@ -142,9 +142,6 @@ async def delete_application(user: User, application_id: int, db: AsyncSession):
         await db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
 
-    if application is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Application not found")
-
 
 
 # Update the attributes of a specific instance in Application db table using its id
