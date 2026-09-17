@@ -39,19 +39,19 @@ async def get_applications(user: User,
 # Create an Application and adds it to Application table in db
 async def create_application(user: User,
                              application: ApplicationCreate,
-                             session: AsyncSession) -> Application:
+                             db: AsyncSession) -> Application:
     new_application = Application(company=application.company, role=application.role, status=application.status,
                       job_url=application.job_url, notes=application.notes,
                       applied_at=datetime.now(UTC) if application.status != "saved" else None,
                       user_id=user.id)
 
     try:
-        session.add(new_application)
-        await session.commit()
-        await session.refresh(new_application)
+        db.add(new_application)
+        await db.commit()
+        await db.refresh(new_application)
 
     except SQLAlchemyError:
-        await session.rollback()
+        await db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
 
     return new_application

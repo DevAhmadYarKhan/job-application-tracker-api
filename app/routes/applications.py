@@ -14,7 +14,7 @@ router = APIRouter(prefix="/applications", tags=["applications"],)
 # Return all applications.
 @router.get("/", response_model=list[ApplicationRead])
 async def get_applications(user: Annotated[User, Depends(auth_service.get_current_user)],
-                           db: AsyncSession = Depends(get_session),
+                           db: Annotated[AsyncSession, Depends(get_session)],
                            status: Literal["saved", "applied", "interview", "offer", "rejected"] | None = None,
                            sort_by: Literal["applied_at", "created_at", "updated_at"] | None = None,
                            order: Literal["asc", "desc"] = "asc",
@@ -30,8 +30,8 @@ async def get_applications(user: Annotated[User, Depends(auth_service.get_curren
 @router.post("/", response_model=ApplicationRead, status_code=status.HTTP_201_CREATED)
 async def create_application(user: Annotated[User, Depends(auth_service.get_current_user)],
                              application: ApplicationCreate,
-                              session: AsyncSession = Depends(get_session)) -> ApplicationRead:
-    return await application_service.create_application(user, application, session)
+                              db: Annotated[AsyncSession, Depends(get_session)]) -> ApplicationRead:
+    return await application_service.create_application(user, application, db)
 
 
 
@@ -55,7 +55,7 @@ async def get_application(user: Annotated[User, Depends(auth_service.get_current
 # Delete a specific application by id
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_application(user: Annotated[User, Depends(auth_service.get_current_user)],
-                             id: Annotated[int, Path(ge=1)], db: AsyncSession = Depends(get_session)):
+                             id: Annotated[int, Path(ge=1)], db: Annotated[AsyncSession, Depends(get_session)]):
     await application_service.delete_application(user, id, db)
 
 
