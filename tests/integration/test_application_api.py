@@ -232,12 +232,9 @@ async def test_get_applications_query_params_2(client, seed_database_application
 
     assert len(data) == 2
 
-    companies = {application["company"] for application in data}
+    companies = [application["company"] for application in data]
 
-    assert companies == {
-        "Stripe",
-        "Amazon"
-    }
+    assert companies == ["Stripe", "Amazon"]
 
 
 # Test GET /applications/{id} endpoint when the application we want exists
