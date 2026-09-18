@@ -254,14 +254,14 @@ async def test_get_application(client, seed_database_applications):
 
 # Test GET /applications/{id} endpoint when the application we want belongs to another user
 @pytest.mark.anyio
-async def tes_get_application_when_foreign(client, seed_database_applications):
+async def test_get_application_when_foreign(client, seed_database_applications):
     response = await client.get("/applications/9")
 
     assert response.status_code == 404
 
     data = response.json()
 
-    assert data == None
+    assert {"detail": "Application not found"}
 
 
 # Test GET /applications/{id} endpoint when the application we want does not exist
