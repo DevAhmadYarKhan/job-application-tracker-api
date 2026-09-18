@@ -158,7 +158,6 @@ async def seed_database_applications(seed_database_users):
         await session.commit()
 
 
-
 # Provides an async test client to each test
 @pytest.fixture
 async def client():
@@ -169,6 +168,8 @@ async def client():
         base_url="http://test",
     ) as client:
         yield client
+
+
 
 # Tests the GET /applications/ when applications do exist
 @pytest.mark.anyio
@@ -220,6 +221,7 @@ async def test_get_applications_query_params(client, seed_database_applications)
 
     assert data[0]["company"] == "Google"
 
+
 @pytest.mark.anyio
 async def test_get_applications_query_params_2(client, seed_database_applications):
     response = await client.get("/applications/?status=interview&sort_by=applied_at&order=desc&page=1&page_size=5")
@@ -236,3 +238,55 @@ async def test_get_applications_query_params_2(client, seed_database_application
         "Stripe",
         "Amazon"
     }
+
+
+# Test GET /applications/{id} endpoint when the application we want exists
+@pytest.mark.anyio
+async def test_get_application(client, seed_database_applications):
+    response = await client.get("/applications/3")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["company"] == "Amazon"
+
+
+# Test GET /applications/{id} endpoint when the application we want belongs to another user
+@pytest.mark.anyio
+async def tes_get_application_when_foreign(client, seed_database_applications):
+    response = await client.get("/applications/9")
+
+    assert response.status_code == 404
+
+    data = response.json()
+
+    assert data == None
+
+
+# Test GET /applications/{id} endpoint when the application we want does not exist
+@pytest.mark.anyio
+async def test_get_application_when_none(client, seed_database_applications):
+    response = await client.get("/applications/20")
+
+    assert response.status_code == 404
+
+    data = response.json()
+
+    assert data == {"detail": "Application not found"}
+
+
+# Test GET /applications/{id} endpoint when id is negative
+@pytest.mark.anyio
+async def test_get_application_when_negative(client, seed_database_applications):
+    response = await client.get("/applications/-1")
+
+    assert response.status_code == 422
+
+
+# Test GET /applications/{id} endpoint when id cannot be parsed to int
+@pytest.mark.anyio
+async def test_get_application_when_unparsable(client, seed_database_applications):
+    response = await client.get("/applications/one")
+
+    assert response.status_code == 422
