@@ -300,6 +300,13 @@ async def test_create_application(client):
     assert data["created_at"] is not None
     assert data["updated_at"] is not None
 
+    async with TestingSessionLocal() as session:
+        application = await session.get(Application, data["id"])
+
+        assert application is not None
+        assert application.company == "OpenAI"
+        assert application.user_id == 1
+
 
 # Test POST /applications/ endpoint when the application is saved
 @pytest.mark.anyio
@@ -319,6 +326,14 @@ async def test_create_saved_application(client):
 
     assert data["status"] == "saved"
     assert data["applied_at"] is None
+
+    async with TestingSessionLocal() as session:
+        application = await session.get(Application, data["id"])
+
+        assert application is not None
+        assert application.status == "saved"
+        assert application.applied_at is None
+        assert application.user_id == 1
 
 
 # Test POST /applications/ endpoint when a required field is missing
