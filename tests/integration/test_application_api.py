@@ -386,3 +386,93 @@ async def test_get_application_stats_when_none(client):
         "offer": 0,
         "rejected": 0
     }
+
+
+# Test PATCH /applications/{id} endpoint when the application data is valid
+@pytest.mark.anyio
+async def test_update_application(client, seed_database_applications):
+    response = await client.patch(
+        "/applications/1",
+        json={
+            "company": "OpenAI",
+            "notes": "Updated application notes"
+        }
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["company"] == "OpenAI"
+    assert data["role"] == "Backend Engineer"
+    assert data["status"] == "saved"
+    assert data["notes"] == "Updated application notes"
+    assert data["updated_at"] is not None
+
+    async with TestingSessionLocal() as session:
+        application = await session.get(Application, 1)
+
+        assert application is not None
+        assert application.company == "OpenAI"
+        assert application.notes == "Updated application notes"
+        assert application.user_id == 1
+
+
+# Test PATCH /applications/{id} endpoint when changing an application to saved
+@pytest.mark.anyio
+async def test_update_application_to_saved(client, seed_database_applications):
+    response = await client.patch(
+        "/applications/2",
+        json={
+            "status": "saved"
+        }
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["status"] == "saved"
+    assert data["applied_at"] is None
+
+    async with TestingSessionLocal() as session:
+        application = await session.get(Application, 2)
+
+        assert application is not None
+        assert application.status == "saved"
+        assert application.applied_at is None
+        assert application.user_id == 1
+
+
+# Test PATCH /applications/{id} endpoint when the application belongs to another user
+@pytest.mark.anyio
+async def test_update_application_when_foreign(client, seed_database_applications):
+    response = await client.patch(
+        "/applications/9",
+        json={
+            "company": "OpenAI"
+        }
+    )
+
+    assert response.status_code == 404
+
+    data = response.json()
+
+    assert data == {"detail": "Application not found"}
+
+
+# Test PATCH /applications/{id} endpoint when the application does not exist
+@pytest.mark.anyio
+async def test_update_application_when_none(client, seed_database_applications):
+    response = await client.patch(
+        "/applications/20",
+        json={
+            "company": "OpenAI"
+        }
+    )
+
+    assert response.status_code == 404
+
+    data = response.json()
+
+    assert data == {"detail": "Application not found"}
