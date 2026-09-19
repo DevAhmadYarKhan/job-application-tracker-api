@@ -349,3 +349,41 @@ async def test_create_application_when_role_missing(client):
     )
 
     assert response.status_code == 422
+
+
+# Test GET /applications/stats endpoint when applications exist
+@pytest.mark.anyio
+async def test_get_application_stats(client, seed_database_applications):
+    response = await client.get("/applications/stats")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data == {
+        "total": 8,
+        "saved": 2,
+        "applied": 2,
+        "interview": 2,
+        "offer": 1,
+        "rejected": 1
+    }
+
+
+# Test GET /applications/stats endpoint when user has no applications
+@pytest.mark.anyio
+async def test_get_application_stats_when_none(client):
+    response = await client.get("/applications/stats")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data == {
+        "total": 0,
+        "saved": 0,
+        "applied": 0,
+        "interview": 0,
+        "offer": 0,
+        "rejected": 0
+    }
