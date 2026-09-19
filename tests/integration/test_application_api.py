@@ -258,7 +258,7 @@ async def test_get_application_when_foreign(client, seed_database_applications):
 
     data = response.json()
 
-    assert {"detail": "Application not found"}
+    assert data == {"detail": "Application not found"}
 
 
 # Test GET /applications/{id} endpoint when the application we want does not exist
