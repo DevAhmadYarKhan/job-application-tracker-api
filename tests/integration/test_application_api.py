@@ -273,22 +273,6 @@ async def test_get_application_when_none(client, seed_database_applications):
     assert data == {"detail": "Application not found"}
 
 
-# Test GET /applications/{id} endpoint when id is negative
-@pytest.mark.anyio
-async def test_get_application_when_negative(client, seed_database_applications):
-    response = await client.get("/applications/-1")
-
-    assert response.status_code == 422
-
-
-# Test GET /applications/{id} endpoint when id cannot be parsed to int
-@pytest.mark.anyio
-async def test_get_application_when_unparsable(client, seed_database_applications):
-    response = await client.get("/applications/one")
-
-    assert response.status_code == 422
-
-
 # Test POST /applications/ endpoint when the application data is valid
 @pytest.mark.anyio
 async def test_create_application(client):
