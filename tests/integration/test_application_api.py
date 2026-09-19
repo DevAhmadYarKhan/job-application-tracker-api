@@ -287,3 +287,65 @@ async def test_get_application_when_unparsable(client, seed_database_application
     response = await client.get("/applications/one")
 
     assert response.status_code == 422
+
+
+# Test POST /applications/ endpoint when the application data is valid
+@pytest.mark.anyio
+async def test_create_application(client):
+    response = await client.post(
+        "/applications/",
+        json={
+            "company": "OpenAI",
+            "role": "Backend Engineer",
+            "status": "applied",
+            "job_url": "https://example.com/jobs/123",
+            "notes": "Applied through the company website"
+        }
+    )
+
+    assert response.status_code == 201
+
+    data = response.json()
+
+    assert data["company"] == "OpenAI"
+    assert data["role"] == "Backend Engineer"
+    assert data["status"] == "applied"
+    assert data["job_url"] == "https://example.com/jobs/123"
+    assert data["notes"] == "Applied through the company website"
+    assert data["applied_at"] is not None
+    assert data["created_at"] is not None
+    assert data["updated_at"] is not None
+
+
+# Test POST /applications/ endpoint when the application is saved
+@pytest.mark.anyio
+async def test_create_saved_application(client):
+    response = await client.post(
+        "/applications/",
+        json={
+            "company": "OpenAI",
+            "role": "Backend Engineer",
+            "status": "saved"
+        }
+    )
+
+    assert response.status_code == 201
+
+    data = response.json()
+
+    assert data["status"] == "saved"
+    assert data["applied_at"] is None
+
+
+# Test POST /applications/ endpoint when a required field is missing
+@pytest.mark.anyio
+async def test_create_application_when_role_missing(client):
+    response = await client.post(
+        "/applications/",
+        json={
+            "company": "OpenAI",
+            "status": "saved"
+        }
+    )
+
+    assert response.status_code == 422
