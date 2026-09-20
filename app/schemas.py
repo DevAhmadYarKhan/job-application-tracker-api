@@ -43,9 +43,7 @@ class ApplicationUpdate(BaseModel):
         non_nullable_fields = {
             "company",
             "role",
-            "status",
-            "job_url",
-            "notes",
+            "status"
         }
 
         if isinstance(data, dict):
