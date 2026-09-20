@@ -476,3 +476,40 @@ async def test_update_application_when_none(client, seed_database_applications):
     data = response.json()
 
     assert data == {"detail": "Application not found"}
+
+
+# Test DELETE /applications/{id} endpoint when the application exists
+@pytest.mark.anyio
+async def test_delete_application(client, seed_database_applications):
+    response = await client.delete("/applications/1")
+
+    assert response.status_code == 204
+
+    async with TestingSessionLocal() as session:
+        application = await session.get(Application, 1)
+
+        assert application is None
+
+
+# Test DELETE /applications/{id} endpoint when the application belongs to another user
+@pytest.mark.anyio
+async def test_delete_application_when_foreign(client, seed_database_applications):
+    response = await client.delete("/applications/9")
+
+    assert response.status_code == 404
+
+    data = response.json()
+
+    assert data == {"detail": "Application not found"}
+
+
+# Test DELETE /applications/{id} endpoint when the application does not exist
+@pytest.mark.anyio
+async def test_delete_application_when_none(client, seed_database_applications):
+    response = await client.delete("/applications/20")
+
+    assert response.status_code == 404
+
+    data = response.json()
+
+    assert data == {"detail": "Application not found"}
