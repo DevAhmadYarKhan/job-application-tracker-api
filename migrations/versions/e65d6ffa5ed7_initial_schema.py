@@ -27,8 +27,8 @@ def upgrade() -> None:
     sa.Column('email', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=False),
     sa.Column('username', sqlmodel.sql.sqltypes.AutoString(length=100), nullable=False),
     sa.Column('password_hash', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=False),
-    sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
     )
@@ -42,9 +42,9 @@ def upgrade() -> None:
     sa.Column('status', sa.String(), nullable=False),
     sa.Column('job_url', sqlmodel.sql.sqltypes.AutoString(length=300), nullable=True),
     sa.Column('notes', sqlmodel.sql.sqltypes.AutoString(length=500), nullable=True),
-    sa.Column('applied_at', sa.DateTime(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('applied_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.CheckConstraint("NOT (status = 'saved' AND applied_at IS NOT NULL)", name='ck_saved_application_has_no_applied_at'),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),

@@ -1,4 +1,5 @@
 from sqlmodel import Field, SQLModel, String, Relationship
+from sqlalchemy import DateTime
 from pydantic import EmailStr
 from sqlalchemy import CheckConstraint
 from typing import Literal
@@ -14,8 +15,10 @@ class User(SQLModel, table=True):
     email: EmailStr = Field(unique=True, max_length=255)
     username: str = Field(unique=True, index=True, max_length=100)
     password_hash: str = Field(max_length=255)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC),
+                                 sa_type=DateTime(timezone=True),)
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC),
+                                 sa_type=DateTime(timezone=True))
 
     applications: list["Application"] = Relationship(back_populates="user")
 
@@ -42,9 +45,12 @@ class Application(SQLModel, table=True):
     status: Literal["saved", "applied", "interview", "offer", "rejected"] = Field(sa_type=String)
     job_url: str | None = Field(default=None, max_length=300)
     notes: str | None = Field(default=None, max_length=500)
-    applied_at: datetime | None = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    applied_at: datetime | None = Field(default=None,
+                                        sa_type=DateTime(timezone=True))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC),
+                                 sa_type=DateTime(timezone=True))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC),
+                                 sa_type=DateTime(timezone=True))
 
     user_id: int = Field(foreign_key="user.id", index=True)
     user: User = Relationship(back_populates="applications")
