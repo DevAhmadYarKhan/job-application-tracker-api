@@ -24,7 +24,8 @@ async def signup(user: UserCreate, db: AsyncSession = Depends(get_session)) -> U
 
 
 # Get a JWT token for authentication (login)
-@router.post("/token", response_model=Token)
+@router.post("/token", response_model=Token,
+             description="Get a JWT access token. In Swagger UI, use 'Authorize' to authenticate subsequent requests.")
 async def  login(data: Annotated[OAuth2PasswordRequestForm, Depends()],
                  db: AsyncSession = Depends(get_session)) -> Token:
     return await auth_service.login(data=data, db=db)
