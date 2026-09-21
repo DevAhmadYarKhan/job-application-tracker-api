@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "job-application-tracker-api"
+version = "0.1.0"
+description = "An asynchronous FastAPI service for tracking job applications."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [
+    { name = "Ahmad Yar Khan" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: FastAPI",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "aiosqlite>=0.20,<1",
+    "alembic>=1.13,<2",
+    "email-validator>=2.2,<3",
+    "fastapi[standard]>=0.115,<1",
+    "pwdlib[argon2]>=0.2,<1",
+    "PyJWT>=2.9,<3",
+    "python-dotenv>=1.0,<2",
+    "SQLAlchemy>=2.0,<3",
+    "sqlmodel>=0.0.22,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "httpx>=0.27,<1",
+    "pytest>=8,<10",
+]
+
+[project.urls]
+Repository = "https://github.com/DevAhmadYarKhan/job-application-tracker-api"
+Issues = "https://github.com/DevAhmadYarKhan/job-application-tracker-api/issues"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
