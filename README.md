@@ -1,29 +1,31 @@
 # Job Application Tracker API
 
-An asynchronous REST API for managing job applications throughout the hiring process. It provides JWT authentication, user-scoped CRUD operations, filtering, sorting, pagination, and application statistics.
+An asynchronous REST API for managing job applications throughout the hiring process. It provides JWT authentication, user-scoped CRUD operations, filtering, sorting, pagination, and status statistics.
 
 ## Features
 
-- Create an account and sign in with an OAuth2 password flow
-- Authenticate requests with short-lived JWT bearer tokens
-- Keep each user's applications private
-- Create, read, update, and delete job applications
+- Create an account and sign in with the OAuth2 password flow
+- Authenticate requests with expiring JWT bearer tokens
+- Keep every user's job applications private
+- Create, read, update, and delete applications
 - Track applications as `saved`, `applied`, `interview`, `offer`, or `rejected`
-- Filter by status and sort by application, creation, or update date
-- Paginate application lists
+- Filter by status, sort by date, and paginate results
 - View totals grouped by application status
+- Manage schema changes with Alembic migrations
 - Validate request and response data with Pydantic
-- Use asynchronous SQLModel sessions with SQLite and `aiosqlite`
-- Explore the API through automatically generated OpenAPI documentation
+- Test the API against an isolated in-memory SQLite database
+- Explore the API through generated OpenAPI documentation
 
 ## Tech stack
 
 - [FastAPI](https://fastapi.tiangolo.com/) — API framework and OpenAPI documentation
-- [SQLModel](https://sqlmodel.tiangolo.com/) — database models and queries
+- [SQLModel](https://sqlmodel.tiangolo.com/) and SQLAlchemy — data models and database queries
 - [SQLite](https://www.sqlite.org/) with [aiosqlite](https://aiosqlite.omnilib.dev/) — asynchronous local persistence
+- [Alembic](https://alembic.sqlalchemy.org/) — database migrations
 - [Pydantic](https://docs.pydantic.dev/) — request and response validation
 - [PyJWT](https://pyjwt.readthedocs.io/) — JWT creation and validation
-- [pwdlib](https://frankie567.github.io/pwdlib/) — password hashing
+- [pwdlib](https://frankie567.github.io/pwdlib/) — Argon2 password hashing
+- [pytest](https://docs.pytest.org/) and [HTTPX](https://www.python-httpx.org/) — async integration testing
 
 ## Getting started
 
@@ -55,11 +57,16 @@ py -m venv .venv
 .venv\Scripts\Activate.ps1
 ```
 
-Install the runtime dependencies:
+Install the project and its development dependencies:
 
 ```bash
-python -m pip install "fastapi[standard]" sqlmodel aiosqlite "pwdlib[argon2]" PyJWT python-dotenv
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
 ```
+
+For a runtime-only installation, use `python -m pip install -e .` instead.
+
+### Configuration
 
 Create a `.env` file in the project root:
 
@@ -69,11 +76,29 @@ SECRET_KEY=replace-this-with-a-long-random-secret
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
-Generate a suitable secret with Python, then use the output as `SECRET_KEY`:
+| Variable | Description | Example |
+| --- | --- | --- |
+| `DATABASE_URL` | SQLAlchemy async database URL | `sqlite+aiosqlite:///./database.db` |
+| `SECRET_KEY` | Secret used to sign JWTs | A long random string |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Bearer-token lifetime in minutes | `30` |
+
+Generate a suitable secret and copy its output into `SECRET_KEY`:
 
 ```bash
 python -c "import secrets; print(secrets.token_hex(32))"
 ```
+
+### Create the database
+
+Apply all database migrations before starting the API:
+
+```bash
+alembic upgrade head
+```
+
+The default configuration creates `database.db` in the project root. When the models change, create and review a migration with `alembic revision --autogenerate -m "describe the change"`, then apply it with `alembic upgrade head`.
+
+### Run the API
 
 Start the development server:
 
@@ -81,7 +106,7 @@ Start the development server:
 fastapi dev app/main.py
 ```
 
-The API is now available at `http://127.0.0.1:8000`. On first startup, SQLModel creates the tables and the configured SQLite database automatically.
+The API is available at `http://127.0.0.1:8000`.
 
 ## API documentation
 
@@ -90,7 +115,7 @@ With the server running, open either interactive documentation interface:
 - Swagger UI: `http://127.0.0.1:8000/docs`
 - ReDoc: `http://127.0.0.1:8000/redoc`
 
-Swagger UI can also perform the login flow for protected endpoints: create an account with `POST /signup`, select **Authorize**, and enter the account's username and password.
+Swagger UI can also perform the login flow for protected endpoints. Create an account with `POST /signup`, select **Authorize**, and enter the account's username and password.
 
 ## Authentication
 
@@ -136,7 +161,7 @@ curl "http://127.0.0.1:8000/me" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-Tokens use the HS256 algorithm and expire after `ACCESS_TOKEN_EXPIRE_MINUTES`. Passwords are stored as hashes rather than plaintext.
+Tokens use the HS256 algorithm and expire after `ACCESS_TOKEN_EXPIRE_MINUTES`. Passwords are stored as Argon2 hashes rather than plaintext.
 
 ## API reference
 
@@ -161,12 +186,12 @@ Tokens use the HS256 algorithm and expire after `ACCESS_TOKEN_EXPIRE_MINUTES`. P
 | `status` | string | Yes | `saved`, `applied`, `interview`, `offer`, or `rejected` |
 | `job_url` | string or null | No | Maximum 300 characters |
 | `notes` | string or null | No | Maximum 500 characters |
-| `applied_at` | datetime or null | No (not accepted) | Set automatically on creation; it can be changed later with `PATCH` |
+| `applied_at` | datetime or null | No | Generated on creation; may be changed with `PATCH` |
 | `id` | integer | Managed by the API | Returned in application responses |
 | `created_at` | datetime | Managed by the API | Set when the application is created |
 | `updated_at` | datetime | Managed by the API | Refreshed when the application is updated |
 
-Datetime values use ISO 8601 format. Ownership is derived from the bearer token; clients do not send or receive a `user_id` in application payloads.
+Datetime values use ISO 8601 format. Ownership is derived from the bearer token; clients do not send or receive a `user_id` in application payloads. A newly created `saved` application has no `applied_at`; other statuses receive the current time.
 
 ### Create an application
 
@@ -214,7 +239,7 @@ curl -X PATCH "http://127.0.0.1:8000/applications/1" \
   }'
 ```
 
-When changing a previously applied application back to `saved`, include `"applied_at": null` in the same request. This maintains the rule that saved applications cannot have an application date.
+Changing an application to `saved` automatically clears `applied_at`.
 
 ### View statistics
 
@@ -238,12 +263,23 @@ Example response:
 
 Successful deletions return `204 No Content`. Missing, expired, or invalid bearer credentials return `401 Unauthorized`. FastAPI returns validation errors for invalid path, query, form, or JSON values.
 
+## Testing
+
+Install the development dependencies, ensure the three environment variables above are defined, and run:
+
+```bash
+pytest
+```
+
+The integration suite replaces the application's database session and authenticated-user dependencies, then creates a fresh in-memory SQLite schema for each test. It does not modify the database configured by `DATABASE_URL`.
+
 ## Project structure
 
 ```text
 .
 ├── app/
-│   ├── main.py                  # FastAPI application and startup lifecycle
+│   ├── main.py                  # FastAPI application and router registration
+│   ├── config.py                # Environment-based configuration
 │   ├── database.py              # Async engine and session dependency
 │   ├── models.py                # User and application database tables
 │   ├── schemas.py               # Request and response models
@@ -253,11 +289,12 @@ Successful deletions return `204 No Content`. Missing, expired, or invalid beare
 │   └── services/
 │       ├── applications.py      # Application queries and business logic
 │       └── auth.py              # Password and JWT authentication logic
-├── config.py                    # Environment-based configuration
+├── migrations/                  # Alembic migration environment and revisions
+├── tests/integration/           # Async API integration tests
+├── alembic.ini                  # Alembic configuration
+├── pyproject.toml               # Package metadata, dependencies, and pytest settings
 └── README.md
 ```
-
-The application creates its schema with `SQLModel.metadata.create_all()` at startup. It does not currently include database migrations, automated tests, or a pinned dependency file, so it is best suited to local development while those production-oriented pieces are added.
 
 ## License
 
