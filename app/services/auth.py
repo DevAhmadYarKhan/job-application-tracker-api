@@ -69,7 +69,8 @@ async def signup(user: UserCreate, db: AsyncSession) -> User:
 
     except IntegrityError:
         await db.rollback()
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT)
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail="Username or email already exists")
 
     except SQLAlchemyError:
         await db.rollback()
