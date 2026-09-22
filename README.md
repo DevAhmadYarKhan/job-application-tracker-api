@@ -13,14 +13,14 @@ An asynchronous REST API for managing job applications throughout the hiring pro
 - View totals grouped by application status
 - Manage schema changes with Alembic migrations
 - Validate request and response data with Pydantic
-- Test the API against an isolated in-memory SQLite database
+- Run API integration tests against an isolated in-memory SQLite database
 - Explore the API through generated OpenAPI documentation
 
 ## Tech stack
 
 - [FastAPI](https://fastapi.tiangolo.com/) — API framework and OpenAPI documentation
 - [SQLModel](https://sqlmodel.tiangolo.com/) and SQLAlchemy — data models and database queries
-- [SQLite](https://www.sqlite.org/) with [aiosqlite](https://aiosqlite.omnilib.dev/) — asynchronous local persistence
+- [SQLite](https://www.sqlite.org/) with [aiosqlite](https://aiosqlite.omnilib.dev/) or PostgreSQL with [asyncpg](https://magicstack.github.io/asyncpg/) — asynchronous persistence
 - [Alembic](https://alembic.sqlalchemy.org/) — database migrations
 - [Pydantic](https://docs.pydantic.dev/) — request and response validation
 - [PyJWT](https://pyjwt.readthedocs.io/) — JWT creation and validation
@@ -78,7 +78,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 | Variable | Description | Example |
 | --- | --- | --- |
-| `DATABASE_URL` | SQLAlchemy async database URL | `sqlite+aiosqlite:///./database.db` |
+| `DATABASE_URL` | SQLAlchemy async database URL for SQLite or PostgreSQL | `sqlite+aiosqlite:///./database.db` |
 | `SECRET_KEY` | Secret used to sign JWTs | A long random string |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Bearer-token lifetime in minutes | `30` |
 
@@ -88,6 +88,14 @@ Generate a suitable secret and copy its output into `SECRET_KEY`:
 python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
+To use PostgreSQL instead, create a database and set `DATABASE_URL` in `.env` to an asyncpg URL, for example:
+
+```dotenv
+DATABASE_URL=postgresql+asyncpg://tracker:password@localhost:5432/job_tracker
+```
+
+The application and Alembic both read `DATABASE_URL` from the environment or `.env` file.
+
 ### Create the database
 
 Apply all database migrations before starting the API:
@@ -96,7 +104,7 @@ Apply all database migrations before starting the API:
 alembic upgrade head
 ```
 
-The default configuration creates `database.db` in the project root. When the models change, create and review a migration with `alembic revision --autogenerate -m "describe the change"`, then apply it with `alembic upgrade head`.
+The SQLite URL shown above creates `database.db` in the project root. For PostgreSQL, create the database before running the migration. When the models change, create and review a migration with `alembic revision --autogenerate -m "describe the change"`, then apply it with `alembic upgrade head`.
 
 ### Run the API
 
@@ -186,12 +194,12 @@ Tokens use the HS256 algorithm and expire after `ACCESS_TOKEN_EXPIRE_MINUTES`. P
 | `status` | string | Yes | `saved`, `applied`, `interview`, `offer`, or `rejected` |
 | `job_url` | string or null | No | Maximum 300 characters |
 | `notes` | string or null | No | Maximum 500 characters |
-| `applied_at` | datetime or null | No | Generated on creation; may be changed with `PATCH` |
+| `applied_at` | datetime or null | No | Set by the API on creation; may be changed with `PATCH` |
 | `id` | integer | Managed by the API | Returned in application responses |
 | `created_at` | datetime | Managed by the API | Set when the application is created |
 | `updated_at` | datetime | Managed by the API | Refreshed when the application is updated |
 
-Datetime values use ISO 8601 format. Ownership is derived from the bearer token; clients do not send or receive a `user_id` in application payloads. A newly created `saved` application has no `applied_at`; other statuses receive the current time.
+Datetime values use ISO 8601 format, and API-generated timestamps are based on UTC. Ownership is derived from the bearer token; clients do not send or receive a `user_id` in application payloads. Clients cannot set `applied_at` when creating an application. A newly created `saved` application has no `applied_at`; other statuses receive the current time.
 
 ### Create an application
 
@@ -239,7 +247,7 @@ curl -X PATCH "http://127.0.0.1:8000/applications/1" \
   }'
 ```
 
-Changing an application to `saved` automatically clears `applied_at`.
+Changing an application to `saved` automatically clears `applied_at`. A request that sets both `status` to `saved` and `applied_at` to a non-null value is rejected.
 
 ### View statistics
 
@@ -271,7 +279,7 @@ Install the development dependencies, ensure the three environment variables abo
 pytest
 ```
 
-The integration suite replaces the application's database session and authenticated-user dependencies, then creates a fresh in-memory SQLite schema for each test. It does not modify the database configured by `DATABASE_URL`.
+The current integration suite covers the application endpoints. It replaces the application's database session and authenticated-user dependencies, then creates a fresh in-memory SQLite schema for each test. It does not modify the database configured by `DATABASE_URL`.
 
 ## Project structure
 
